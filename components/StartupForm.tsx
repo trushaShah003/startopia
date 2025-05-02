@@ -69,7 +69,7 @@ const StartupForm = () => {
             return {...prevState, error: 'An unexpected error has occured', status: "ERROR"}
         }
     }
-
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [state, formAction, isPending] = useActionState(handleFormSubmit, {
         error: "",
         status: "INITIAL",
