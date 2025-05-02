@@ -1,6 +1,6 @@
 import { formatDate } from '@/lib/utils';
 import { client } from '@/sanity/lib/client';
-import { STARTUP_BY_ID } from '@/sanity/lib/queries';
+import { PLAYLIST_BY_SLUG_QUERY, STARTUP_BY_ID } from '@/sanity/lib/queries';
 import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
@@ -9,6 +9,7 @@ import markdownit from 'markdown-it';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import View from '@/components/View';
+import StartupCard, { StartupTypeCard } from '@/components/StartupCard';
 
 
 const md = markdownit({
@@ -35,9 +36,16 @@ export const experimental_ppr = true;
 const page = async ({params}:{params : Promise<{id:string}>}) => {
     const id = (await params).id;
 
-    const post = await client.fetch(STARTUP_BY_ID, { id });
+    const [post, { select: editotPosts} ] = await Promise.all([
+        client.fetch(STARTUP_BY_ID, { id }),
+        client.fetch(PLAYLIST_BY_SLUG_QUERY, { slug: 'editor-picks'})
+    ])
+
+    // const post = await client.fetch(STARTUP_BY_ID, { id });
 
     if(!post) return notFound();
+    
+    // const { select: editotPosts} = await client.fetch(PLAYLIST_BY_SLUG_QUERY, { slug: 'editor-picks'})
     
     // const cleanedMarkdown = normalizeMarkdown(post?.pitch || '');
     // console.log('cleanedMarkdown',cleanedMarkdown)
@@ -80,6 +88,16 @@ const page = async ({params}:{params : Promise<{id:string}>}) => {
         <hr className="divider" />
 
         {/* TODO : EDITOR SELECTED STARTUPS */}
+        {editotPosts.length > 0 && (
+            <div className="max-w-4xl mx-auto">
+                <p className="text-30-semibold">Editor Picks</p>
+                <ul className="mt-7 card_grid-sm">
+                    {editotPosts.map((post: StartupTypeCard, index: number)=>(
+                        <StartupCard key={post._id+index} post={post} />
+                    ))}
+                </ul>
+            </div>
+        )}
 
         <Suspense fallback={<Skeleton className='view_skeleton' />} >
             <View id={id} />
